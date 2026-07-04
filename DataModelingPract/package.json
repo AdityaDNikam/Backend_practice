@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "run dev"
+    "test": "dev"
   },
   "dependencies": {
     "mongoos": "^0.0.1-security"

@@ -1,0 +1,7 @@
+/.antigravity-ide
+/node-modules
+./dist
+
+*.env
+.env
+.env.*
