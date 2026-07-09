@@ -1,9 +1,10 @@
+import "dotenv/config"
+import dns from "dns"
 import DataBaseConnection from "./db/index.js"
-import dotenv from "dotenv"
 import { app } from "./app.js"
 
-
-dotenv.config()
+// Configure fallback public DNS resolver to solve Atlas SRV lookup issues
+dns.setServers(["8.8.8.8", "8.8.4.4"])
 
 DataBaseConnection()
     .then(() => {

@@ -6,21 +6,25 @@ import ApiResponce from "../utils/ApiResponce.js";
 
 const reqisterUser = asyncHandler(async (req, res, next) => {
     const { userName, email, password, fullname } = req.body
-    console.log(
-        "Email:", email
-    )
-    if ([userName, email, password, fullname].some(fields.trim() === "")) {
-        return ApiError(400, "All fields are Mandatory")
+    // console.log(
+    //     "Email:", email
+    // )
+    if ([userName, email, password, fullname].some((field) => !field || field.trim() === "")) {
+        throw new ApiError(400, "All fields are Mandatory")
     }
-    const ExistingUser = User.findOne({
+    const ExistingUser = await User.findOne({
         $or: [{ userName }, { email }]
     })
 
     if (ExistingUser) {
         throw new ApiError("400", "User with the username or email all ready exist!")
     }
-    const avatarLocalPath = req.files?.avatar[0]?.[path]
-    const coverImgLocalPath = req.files?.coverImage[0]?.[path]
+    const avatarLocalPath = req.files?.avatar?.[0]?.path
+
+    let coverImgLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImgLocalPath = req.files.coverImage[0]?.path
+    }
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar is mandatory")
