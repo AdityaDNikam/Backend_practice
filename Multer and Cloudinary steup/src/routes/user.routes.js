@@ -24,15 +24,22 @@ router.route("/refresh-token").post(RefreshAccessToken)
 router.route("/update-password").post(verifyJWT, Upadate_Password)
 
 //update avatar
-router.route("/update-avatar").post(verifyJWT, upload.single("avatar"), updateAvatar)
+router.route("/update-avatar").patch(verifyJWT, upload.single("avatar"), updateAvatar)
 
 //update cover image
-router.route("/update-cover-image").post(verifyJWT, upload.single("coverImage"), updateCoverImg)
+router.route("/update-cover-image").patch(verifyJWT, upload.single("coverImage"), updateCoverImg)
 
 //get current user
 router.route("/current-user").get(verifyJWT, GetCurrentUser)
 
 //update account details
 router.route("/update-account").patch(verifyJWT, updateAccountDetails)
+
+//get user watch history
+router.route("/history").get(verifyJWT, getUserHistory)
+
+//get user channel profile
+router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
+
 
 export default router
