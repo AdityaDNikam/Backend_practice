@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
-import { FileUploadCloudinary } from "../utils/cloudinary.js";
+import { FileUploadCloudinary, FileDeleteCloudinary } from "../utils/cloudinary.js";
 import ApiResponce from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -59,7 +59,9 @@ const reqisterUser = asyncHandler(async (req, res, next) => {
         password,
         fullname,
         avatar: avatar.url,
-        coverImage: coverImg?.url
+        avatarPublicId: avatar.public_id,
+        coverImage: coverImg?.url,
+        coverImagePublicId: coverImg?.public_id
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -79,7 +81,7 @@ const reqisterUser = asyncHandler(async (req, res, next) => {
 })
 
 const loginUser = asyncHandler(async (req, res, next) => {
-    const { userName, email, password } = req.body
+    const { userName, email, password } = req.body || {}
 
     if (!(userName || email)) {
         throw new ApiError(400, "All email/username are Mandatory")
@@ -259,6 +261,32 @@ const updateAvatar = asyncHandler(async (req, res) => {
 
 })
 
+const deleteCoverImg = asyncHandler(async (req, res) => {
+    try {
+        if (!req.user) {
+            throw new ApiError(401, "User not authorized")
+        }
+
+        if (!req.user.coverImage) {
+            throw new ApiError(400, "No cover image found")
+        }
+        const coverImagePublicIdFromDB = req.user.coverImagePublicId
+
+        const DeleteImage = await FileDeleteCloudinary(coverImagePublicIdFromDB)
+        if (!DeleteImage) {
+            throw new ApiError(500, "Failed to delete cover image")
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(req.user?._id, { $set: { coverImage: "" } }, { new: true }).select("-password -refreshToken")
+        return res.status(200).json(new ApiResponce(200, updatedUser, "Cover image deleted successfully"))
+
+
+    } catch (error) {
+        throw new ApiError(500, error?.message || "Failed to delete cover image")
+    }
+
+})
+
 const updateCoverImg = asyncHandler(async (req, res) => {
     const fileLocalPath = req.file?.path
 
@@ -395,6 +423,6 @@ const getUserHistory = asyncHandler(async (req, res) => {
 })
 
 export {
-    RefreshAccessToken, reqisterUser, loginUser, logoutUser, Upadate_Password, GetCurrentUser,
+    RefreshAccessToken, deleteCoverImg, reqisterUser, loginUser, logoutUser, Upadate_Password, GetCurrentUser,
     updateAvatar, updateCoverImg, updateAccountDetails, getUserChannelProfile, getUserHistory
 }

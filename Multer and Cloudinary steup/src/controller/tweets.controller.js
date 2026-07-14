@@ -6,11 +6,39 @@ import mongoose, { isValidObjectId } from "mongoose"
 import { User } from "../models/user.model.js"
 
 const createTweet = asyncHandler(async (req, res) => {
-    //TODO: create tweet
+    const { content } = req.body || {}
+    console.log("Content incoming", req.body)
+
+    if (!content) {
+        throw new ApiError(400, "All fields are Mandatory")
+    }
+    const user = await User.findById(req.user?._id)
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+    const tweet = await Tweet.create({
+        owner: user._id,
+        content: content
+    })
+    if (!tweet) {
+        throw new ApiError(500, "Something went wrong, Please try again!")
+    }
+    return res.status(201).json(new ApiResponce(201, tweet, "Tweet created successfully"))
 })
 
 const getUserTweets = asyncHandler(async (req, res) => {
-    // TODO: get user tweets
+    const { userId } = req.params
+
+    try {
+        if (!userId) {
+            throw new ApiError(400, "User id is missing")
+        }
+
+        const usertweets = await Tweet.find({ owner: userId })
+        return res.status(201).json(new ApiResponce(201, usertweets, "User tweets fetched successfully"))
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong, Please try again!")
+    }
 })
 
 const updateTweet = asyncHandler(async (req, res) => {

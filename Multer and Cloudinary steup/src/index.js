@@ -1,4 +1,4 @@
-import "dotenv/config"
+import "dotenv"
 import dns from "dns"
 import DataBaseConnection from "./db/index.js"
 import { app } from "./app.js"

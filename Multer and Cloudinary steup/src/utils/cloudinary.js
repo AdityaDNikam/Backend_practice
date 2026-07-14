@@ -11,10 +11,10 @@ cloudinary.config(
 
 const FileUploadCloudinary = async (localFilePath) => {
     try {
-        const responce = await cloudinary.uploader.upload(localFilePath, { resource_type: "auto" });
-        console.log("File Upload Successfull", responce.url)
+        const responceUpload = await cloudinary.uploader.upload(localFilePath, { resource_type: "auto" });
+        console.log("File Upload Successfull", responceUpload.url)
         fs.unlinkSync(localFilePath)
-        return responce;
+        return responceUpload;
 
     } catch (error) {
         console.error("Cloudinary upload failed error details:", error)
@@ -25,4 +25,16 @@ const FileUploadCloudinary = async (localFilePath) => {
     }
 }
 
-export { FileUploadCloudinary } 
+const FileDeleteCloudinary = async (coverImagePublicIdFromDB) => {
+    try {
+        const responceDelete = await cloudinary.uploader.destroy(coverImagePublicIdFromDB);
+        console.log("File delete successfull", responceDelete)
+        return responceDelete;
+    } catch (error) {
+        console.error("Cloudinary delete failed error details:", error)
+        return null
+    }
+
+}
+
+export { FileUploadCloudinary, FileDeleteCloudinary } 
