@@ -23,9 +23,6 @@ const GenerateAccessAndRefreshToken = async (userId) => {
 
 const reqisterUser = asyncHandler(async (req, res, next) => {
     const { userName, email, password, fullname } = req.body
-    // console.log(
-    //     "Email:", email
-    // )
     if ([userName, email, password, fullname].some((field) => !field || field.trim() === "")) {
         throw new ApiError(400, "All fields are Mandatory")
     }
