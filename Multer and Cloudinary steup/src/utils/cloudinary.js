@@ -25,16 +25,16 @@ const FileUploadCloudinary = async (localFilePath) => {
     }
 }
 
-const FileDeleteCloudinary = async (coverImagePublicIdFromDB) => {
+const FileDeleteCloudinary = async (coverImagePublicIdFromDB, resourceType = "image") => {
     try {
-        const responceDelete = await cloudinary.uploader.destroy(coverImagePublicIdFromDB);
+        const responceDelete = await cloudinary.uploader.destroy(coverImagePublicIdFromDB, { resource_type: resourceType });
         console.log("File delete successfull", responceDelete)
         return responceDelete;
     } catch (error) {
         console.error("Cloudinary delete failed error details:", error)
-        return null
+        return null;
     }
 
 }
 
-export { FileUploadCloudinary, FileDeleteCloudinary } 
+export { FileUploadCloudinary, FileDeleteCloudinary }

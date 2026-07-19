@@ -29,7 +29,9 @@ const VideoSchema = new mongoose.Schema(
         },
         isPublished: {
             type: Boolean,
-            default: true
+            enum: [true, false],
+            default: false,
+            required: true
         },
         owner: {
             type: mongoose.Schema.Types.ObjectId,
