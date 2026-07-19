@@ -9,9 +9,100 @@ import { FileUploadCloudinary, FileDeleteCloudinary } from "../utils/cloudinary.
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    console.log("route for getting all videos")
-    //TODO: get all videos based on query, sort, pagination
+    const { page = 1, limit = 10, query, sortBy = "createdAt", sortType = "desc", userId } = req.query
+
+    const pipeline = []
+
+    // 1. Filter by userId (if specific user's videos are requested)
+    if (userId) {
+        if (!isValidObjectId(userId)) {
+            throw new ApiError(400, "Invalid User ID")
+        }
+        pipeline.push({
+            $match: {
+                owner: new mongoose.Types.ObjectId(userId)
+            }
+        })
+    }
+
+    // 2. Filter by search query (matching title or description with case-insensitive regex)
+    if (query && query.trim() !== "") {
+        pipeline.push({
+            $match: {
+                $or: [
+                    { title: { $regex: query, $options: "i" } },
+                    { description: { $regex: query, $options: "i" } }
+                ]
+            }
+        })
+    }
+
+    // Only fetch published videos by default (you can modify this if needed)
+    pipeline.push({
+        $match: {
+            isPublished: true
+        }
+    })
+
+    // 3. Dynamic sorting
+    const sortField = sortBy
+    const sortOrder = sortType === "asc" ? 1 : -1
+    pipeline.push({
+        $sort: {
+            [sortField]: sortOrder
+        }
+    })
+
+    // 4. Lookup owner details from users collection (joins collections)
+    pipeline.push({
+        $lookup: {
+            from: "users",
+            localField: "owner",
+            foreignField: "_id",
+            as: "ownerDetails"
+        }
+    })
+
+    // 5. Project required fields and avoid sending sensitive information like password/tokens
+    pipeline.push(
+        {
+            $addFields: {
+                owner: {
+                    $first: "$ownerDetails"
+                }
+            }
+        },
+        {
+            $project: {
+                videoFile: 1,
+                thumbnail: 1,
+                title: 1,
+                description: 1,
+                duration: 1,
+                views: 1,
+                isPublished: 1,
+                createdAt: 1,
+                owner: {
+                    userName: 1,
+                    fullname: 1,
+                    avatar: 1
+                }
+            }
+        }
+    )
+
+    // 6. Paginate aggregate pipeline
+    const options = {
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10)
+    }
+
+    const videosAggregate = Video.aggregate(pipeline)
+    const videos = await Video.aggregatePaginate(videosAggregate, options)
+
+    return res
+        .status(200)
+        .json(new ApiResponce(200, videos, "Videos fetched successfully"))
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
