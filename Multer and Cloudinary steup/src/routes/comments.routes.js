@@ -9,7 +9,7 @@ import { verifyJWT } from "../middleware/auth.middleware.js"
 
 const router = Router()
 
-//get comments for perticular video
+//get comments for particular video
 router.route("/commentForVideo/:videoId").get(verifyJWT, getVideoComments)
 //add comments
 router.route("/addComment/:videoId").post(verifyJWT, addComment)
